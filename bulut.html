@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Talabalar jadvali | Dars qo'shish + Rangli kunlar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Inter', 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e9f0fc 0%, #d9e4f0 100%);
+            padding: 24px 20px;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #1a2a4f, #2c3e66);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .sub {
+            color: #2c3e66;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 28px;
+        }
+
+        .schedule-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(1px);
+            border-radius: 36px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .card-header {
+            background: #ffffffdd;
+            padding: 20px 26px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .card-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.7rem;
+            color: #0f2b3d;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            padding: 0 6px 20px 6px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .schedule-table th {
+            background: #1f3a5f;
+            color: white;
+            padding: 14px 8px;
+            font-weight: 600;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .schedule-table td {
+            border-bottom: 1px solid #e2edf7;
+            padding: 12px 8px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .schedule-table tr:hover td {
+            filter: brightness(0.97);
+            transition: 0.2s;
+        }
+
+        /* Kun ranglari */
+        .day-dushanba {
+            background-color: #E8F0FE;
+        }
+
+        .day-seshanba {
+            background-color: #FDE8E8;
+        }
+
+        .day-chorshanba {
+            background-color: #E8FDE8;
+        }
+
+        .day-payshanba {
+            background-color: #FEF6E0;
+        }
+
+        .day-juma {
+            background-color: #F0E8FD;
+        }
+
+        .day-shanba {
+            background-color: #FFE4F0;
+        }
+
+        .subject-cell {
+            font-weight: 700;
+            color: #0a2b44;
+        }
+
+        .badge-lecture {
+            background: #eef2ff;
+            color: #1e40af;
+            padding: 5px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid #cbdff2;
+        }
+
+        .badge-lecture:hover {
+            background: #dee8fc;
+            transform: scale(1.02);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
+        }
+
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 550px;
+            border-radius: 40px;
+            padding: 24px 28px;
+            box-shadow: 0 30px 40px rgba(0, 0, 0, 0.3);
+            transform: scale(0.95);
+            transition: transform 0.2s;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 18px;
+            color: #1f3a5f;
+            border-left: 5px solid #1f3a5f;
+            padding-left: 15px;
+        }
+
+        .file-preview {
+            background: #f4f9fe;
+            padding: 20px;
+            border-radius: 28px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            text-align: left;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid #cfe2f5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .close-modal-btn,
+        .download-btn {
+            padding: 10px 26px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .download-btn {
+            background: #1f3a5f;
+            color: white;
+        }
+
+        .download-btn:hover {
+            background: #0f2a4f;
+            transform: translateY(-2px);
+        }
+
+        .close-modal-btn {
+            background: #eef2fa;
+        }
+
+        .close-modal-btn:hover {
+            background: #e0e6f0;
+        }
+
+        .reminders-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 36px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reminder-header {
+            padding: 22px 22px 12px;
+            background: #fafcff;
+            border-bottom: 1px solid #eef2f8;
+        }
+
+        .add-reminder {
+            padding: 20px 22px 12px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #eef2f8;
+        }
+
+        .add-reminder input,
+        .add-reminder select {
+            flex: 1;
+            padding: 12px 15px;
+            border-radius: 48px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 0.85rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .add-reminder input:focus,
+        .add-reminder select:focus {
+            border-color: #1f3a5f;
+            box-shadow: 0 0 0 2px rgba(31, 58, 95, 0.1);
+        }
+
+        .add-reminder button {
+            background: #1f3a5f;
+            border: none;
+            padding: 0 24px;
+            border-radius: 48px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .add-reminder button:hover {
+            background: #0f2a4f;
+            transform: scale(1.02);
+        }
+
+        .reminder-list {
+            padding: 12px 16px 24px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .reminder-item {
+            background: #f8fafd;
+            border-radius: 24px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 8px solid;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .reminder-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .delete-reminder {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: #9aaebf;
+            transition: 0.2s;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+
+        .delete-reminder:hover {
+            color: #dc2626;
+            background: #fee;
+            transform: scale(1.1);
+        }
+
+        .quick-note {
+            padding: 15px 20px 20px;
+            font-size: 0.7rem;
+            color: #3b5a7c;
+            text-align: center;
+            border-top: 1px solid #e2edf7;
+        }
+
+        .add-lesson-section {
+            margin: 16px 20px 20px 20px;
+            padding: 16px;
+            background: #f0f4fa;
+            border-radius: 28px;
+        }
+
+        .add-lesson-section h4 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            color: #1f3a5f;
+            margin-bottom: 12px;
+        }
+
+        .add-lesson-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .add-lesson-form input,
+        .add-lesson-form select {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px 12px;
+            border-radius: 48px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 0.8rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .add-lesson-form input:focus,
+        .add-lesson-form select:focus {
+            border-color: #1f3a5f;
+        }
+
+        .add-lesson-form button {
+            background: #2c5a2e;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 48px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .add-lesson-form button:hover {
+            background: #1e4020;
+            transform: scale(1.02);
+        }
+
+        .empty-reminder {
+            text-align: center;
+            padding: 30px;
+            color: #8ba0b5;
+            font-style: italic;
+        }
+
+        /* Toast xabarlar */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1f3a5f;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 48px;
+            font-size: 0.9rem;
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Eksport tugmasi */
+        .export-btn {
+            position: absolute;
+            right: 26px;
+            top: 20px;
+            background: #1f3a5f20;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+
+        .export-btn:hover {
+            background: #1f3a5f40;
+            transform: scale(1.02);
+        }
+
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .schedule-table th,
+            .schedule-table td {
+                font-size: 0.7rem;
+                padding: 8px 4px;
+            }
+
+            .export-btn {
+                position: static;
+                margin-left: 20px;
+                margin-bottom: 10px;
+            }
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 35px;
+            font-size: 0.75rem;
+            color: #4b6b8f;
+        }
+
+        .delete-lesson {
+            background: none;
+            border: none;
+            color: #e07c4c;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px 8px;
+            border-radius: 30px;
+            transition: 0.2s;
+        }
+
+        .delete-lesson:hover {
+            background: #ffe0d6;
+            transform: scale(1.1);
+        }
+
+        /* Statistikalar */
+        .stats {
+            padding: 10px 20px;
+            background: #f8fafd;
+            font-size: 0.75rem;
+            color: #4a627a;
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #e2edf7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>📚 Talabalar jadvali + Dars qo'shish</h1>
+            <div class="sub">Kunlar rangli ajratilgan | Jadvalga o'zingiz dars qo'shing | Fayl bilan ishlash</div>
+        </div>
+
+        <div class="dashboard">
+            <div class="schedule-card">
+                <div class="card-header" style="position: relative;">
+                    <h2>📅 Haftalik dars jadvali</h2>
+                    <button class="export-btn" id="exportExcelBtn">📊 Excel/CSV ga chiqarish</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th>Kun</th>
+                                <th>Vaqt</th>
+                                <th>Fan nomi</th>
+                                <th>Dars turi (bosiladi)</th>
+                                <th>O'qituvchi</th>
+                                <th>Xona</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="schedule-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="stats" id="statsInfo"></div>
+                <div class="add-lesson-section">
+                    <h4>➕ Yangi dars qo'shish</h4>
+                    <div class="add-lesson-form">
+                        <select id="newDay">
+                            <option value="Dushanba">Dushanba</option>
+                            <option value="Seshanba">Seshanba</option>
+                            <option value="Chorshanba">Chorshanba</option>
+                            <option value="Payshanba">Payshanba</option>
+                            <option value="Juma">Juma</option>
+                            <option value="Shanba">Shanba</option>
+                        </select>
+                        <input type="text" id="newTime" placeholder="09:00 - 10:30" value="13:00 - 14:30">
+                        <input type="text" id="newSubject" placeholder="Fan nomi" value="Yangi fan">
+                        <input type="text" id="newType" placeholder="Dars turi" value="Ma'ruza">
+                        <input type="text" id="newTeacher" placeholder="O'qituvchi" value="Yangi o'qituvchi">
+                        <input type="text" id="newRoom" placeholder="Xona (masalan: 107)" value="107">
+                        <input type="text" id="newFile" placeholder="Fayl nomi" value="yangi_material.pdf">
+                        <button id="addLessonBtn">+ Qo'shish</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reminders-card">
+                <div class="reminder-header">
+                    <h3>⏰ Eslatmalar paneli</h3>
+                    <p style="font-size: 0.7rem;">Imtihon va topshiriqlarni qo'shing</p>
+                </div>
+                <div class="add-reminder">
+                    <input type="text" id="reminderTitle" placeholder="Masalan: Imtihon yoki topshiriq"
+                        autocomplete="off">
+                    <select id="reminderType">
+                        <option value="Imtihon">📝 Imtihon</option>
+                        <option value="Topshiriq">📌 Topshiriq</option>
+                        <option value="Eslatma">🔔 Eslatma</option>
+                    </select>
+                    <input type="date" id="reminderDate">
+                    <button id="addReminderBtn">+ Qo'shish</button>
+                </div>
+                <div class="reminder-list" id="reminderListContainer">
+                    <div class="empty-reminder">📭 Hozircha eslatma yo‘q</div>
+                </div>
+                <div class="quick-note">
+                    ⚡ Dars turi (Ma'ruza, Amaliyot...) → bosilganda fayl ochiladi.<br>
+                    📌 Eslatmalarni o'chirish uchun 🗑️ belgisini bosing
+                </div>
+            </div>
+        </div>
+        <footer>📖 Kunlar rangli | Jadvalga o'z darslaringizni qo'shing | Eslatmalar saqlanadi | Qo'shilgan darslar
+            brauzer xotirasida saqlanadi</footer>
+    </div>
+
+    <div id="fileModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalTitle">📄 Fayl</h3>
+            <div id="filePreview" class="file-preview">Yuklanmoqda...</div>
+            <div class="modal-buttons">
+                <button class="close-modal-btn" id="closeModalBtn">Yopish</button>
+                <button class="download-btn" id="downloadFileBtn">Yuklab olish</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== SIZ BERGAN ANIQ MA'LUMOTLAR ==========
+        let scheduleData = [
+            { id: 1, day: "Dushanba", time: "09:00 - 10:30", subject: "Algoritmlar va dasturlash", type: "Ma'ruza", teacher: "Akbarov A.", room: "201", file: "algoritm_maruza.pdf" },
+            { id: 2, day: "Dushanba", time: "10:45 - 12:15", subject: "Diskret matematika", type: "Amaliyot", teacher: "Rahimova N.", room: "103", file: "diskret_amaliyot.pdf" },
+            { id: 3, day: "Seshanba", time: "09:00 - 10:30", subject: "Web dasturlash", type: "Laboratoriya", teacher: "Karimov J.", room: "303", file: "web_lab_ishlari.docx" },
+            { id: 4, day: "Seshanba", time: "12:30 - 14:00", subject: "Ma'lumotlar tuzilmasi", type: "Ma'ruza", teacher: "Tashpulatov A", room: "205", file: "data_struct_maruza.pdf" },
+            { id: 5, day: "Chorshanba", time: "10:45 - 12:15", subject: "Elektronika asoslari", type: "Ma'ruza", teacher: "Valiyeva M.", room: "102", file: "elektronika_maruza.pdf" },
+            { id: 6, day: "Chorshanba", time: "14:00 - 15:30", subject: "IT loyihalarni boshqarish", type: "Seminar", teacher: "Saidov B.", room: "109", file: "it_project_seminar.pptx" },
+            { id: 7, day: "Payshanba", time: "09:00 - 10:30", subject: "Sun'iy intellekt", type: "Ma'ruza", teacher: "Abdullayev R.", room: "302", file: "ai_maruza.pdf" },
+            { id: 8, day: "Payshanba", time: "11:00 - 12:30", subject: "Sun'iy intellekt", type: "Amaliyot", teacher: "Ernazarova", room: "303", file: "ai_amaliyot.pdf" },
+            { id: 9, day: "Juma", time: "10:00 - 11:30", subject: "Kiberxavfsizlik", type: "Ma'ruza", teacher: "Azimov Sh.", room: "101", file: "cyber_maruza.pdf" },
+            { id: 10, day: "Juma", time: "12:30 - 14:00", subject: "Mobil ilovalar", type: "Laboratoriya", teacher: "Usmonova L.", room: "107", file: "mobile_lab.pdf" },
+            { id: 11, day: "Shanba", time: "09:00 - 10:30", subject: "Iqtisodiyot asoslari", type: "Ma'ruza", teacher: "Husanov F.", room: "204", file: "iqtisod_maruza.pdf" }
+        ];
+        let nextId = 12;
+
+        const dayOrder = ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"];
+        const dayColors = {
+            "Dushanba": "day-dushanba", "Seshanba": "day-seshanba", "Chorshanba": "day-chorshanba",
+            "Payshanba": "day-payshanba", "Juma": "day-juma", "Shanba": "day-shanba"
+        };
+
+        function showToast(message, duration = 2000) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), duration);
+        }
+
+        function cleanTeacherName(name) {
+            if (!name) return "";
+            return name.replace(/(prof|dotsent|dots|k\.o|assistent|o'qituvchi|phd|dsc|f-m\.n|t\.n|p-r|p\.r|d-t)\.?\s+/gi, '').trim();
+        }
+
+        function updateStats() {
+            const statsDiv = document.getElementById('statsInfo');
+            const totalLessons = scheduleData.length;
+            const uniqueSubjects = [...new Set(scheduleData.map(l => l.subject))].length;
+            const lectureCount = scheduleData.filter(l => l.type === "Ma'ruza").length;
+            statsDiv.innerHTML = `📊 Jami darslar: ${totalLessons} | 🎓 Fanlar: ${uniqueSubjects} | 📖 Ma'ruzalar: ${lectureCount}`;
+        }
+
+        function renderSchedule() {
+            const tbody = document.getElementById("schedule-tbody");
+            if (!tbody) return;
+            const sorted = [...scheduleData].sort((a, b) => {
+                let dayCompare = dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
+                if (dayCompare !== 0) return dayCompare;
+                const timeA = a.time.split(" - ")[0];
+                const timeB = b.time.split(" - ")[0];
+                return timeA.localeCompare(timeB);
+            });
+            tbody.innerHTML = "";
+            sorted.forEach(item => {
+                const row = tbody.insertRow();
+                const dayClass = dayColors[item.day] || "";
+                row.className = dayClass;
+
+                row.insertCell(0).textContent = item.day;
+                row.insertCell(1).textContent = item.time;
+
+                const subjectCell = row.insertCell(2);
+                subjectCell.textContent = item.subject;
+                subjectCell.className = "subject-cell";
+
+                const typeCell = row.insertCell(3);
+                const badge = document.createElement("span");
+                badge.className = "badge-lecture";
+                badge.textContent = item.type;
+                badge.setAttribute("data-file", item.file);
+                badge.setAttribute("data-subject", item.subject);
+                badge.setAttribute("data-type", item.type);
+                badge.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    openFileModal(item.subject, item.type, item.file);
+                });
+                typeCell.appendChild(badge);
+
+                row.insertCell(4).textContent = item.teacher;
+                row.insertCell(5).textContent = item.room;
+
+                const delCell = row.insertCell(6);
+                const delBtn = document.createElement("button");
+                delBtn.textContent = "🗑️";
+                delBtn.className = "delete-lesson";
+                delBtn.title = "Darsni o'chirish";
+                delBtn.onclick = () => deleteLesson(item.id);
+                delCell.appendChild(delBtn);
+            });
+            updateStats();
+        }
+
+        function deleteLesson(id) {
+            if (confirm("Ushbu darsni jadvaldan o'chirmoqchimisiz?")) {
+                const deletedLesson = scheduleData.find(item => item.id === id);
+                scheduleData = scheduleData.filter(item => item.id !== id);
+                renderSchedule();
+                saveScheduleToLocal();
+                showToast(`"${deletedLesson?.subject}" darsi o'chirildi ✖️`);
+            }
+        }
+
+        function addNewLesson() {
+            const day = document.getElementById("newDay").value;
+            const time = document.getElementById("newTime").value.trim();
+            const subject = document.getElementById("newSubject").value.trim();
+            const type = document.getElementById("newType").value.trim();
+            const teacherRaw = document.getElementById("newTeacher").value.trim();
+            const teacher = cleanTeacherName(teacherRaw);
+            let roomRaw = document.getElementById("newRoom").value.trim().replace(/\D/g, '');
+            let room = roomRaw;
+            if (roomRaw.length === 0) room = "107";
+            else if (roomRaw.length === 1) room = "10" + roomRaw;
+            else if (roomRaw.length === 2) room = "1" + roomRaw;
+            const file = document.getElementById("newFile").value.trim();
+
+            if (!subject || !time) {
+                showToast("❌ Fan nomi va vaqtni to'ldiring!", 3000);
+                return;
+            }
+
+            // Vaqt formatini tekshirish
+            const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]\s*-\s*([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
+            if (!timeRegex.test(time)) {
+                if (!confirm("Vaqt formati to'g'ri emas (Masalan: 13:00 - 14:30). Davom etasizmi?")) {
+                    return;
+                }
+            }
+
+            const newLesson = {
+                id: nextId++,
+                day: day,
+                time: time,
+                subject: subject,
+                type: type || "Ma'ruza",
+                teacher: teacher || "Aniqlanmagan",
+                room: room || "-",
+                file: file || "material.pdf"
+            };
+            scheduleData.push(newLesson);
+            renderSchedule();
+            saveScheduleToLocal();
+            showToast(`✅ "${subject}" darsi qo'shildi!`);
+
+            // Inputlarni tozalash
+            document.getElementById("newSubject").value = "";
+            document.getElementById("newSubject").placeholder = "Yangi fan qo'shildi";
+            setTimeout(() => {
+                document.getElementById("newSubject").placeholder = "Fan nomi";
+            }, 2000);
+        }
+
+        function saveScheduleToLocal() {
+            localStorage.setItem("uni_schedule_data", JSON.stringify(scheduleData));
+            localStorage.setItem("uni_next_id", nextId);
+        }
+
+        function loadScheduleFromLocal() {
+            const stored = localStorage.getItem("uni_schedule_data");
+            if (stored) {
+                scheduleData = JSON.parse(stored);
+                scheduleData = scheduleData.map(item => {
+                    let r = (item.room || "107").toString().replace(/\D/g, '');
+                    if (r.length === 0) r = "107";
+                    else if (r.length === 1) r = "10" + r;
+                    else if (r.length === 2) r = "1" + r;
+                    return {
+                        ...item,
+                        room: r,
+                        teacher: cleanTeacherName(item.teacher || "")
+                    };
+                });
+                const storedId = localStorage.getItem("uni_next_id");
+                if (storedId) nextId = parseInt(storedId);
+                else nextId = Math.max(...scheduleData.map(s => s.id), 0) + 1;
+            }
+            renderSchedule();
+        }
+
+        function exportToCSV() {
+            const headers = ["Kun", "Vaqt", "Fan nomi", "Dars turi", "O'qituvchi", "Xona", "Fayl"];
+            const data = scheduleData.map(item => [
+                item.day, item.time, item.subject, item.type, item.teacher, item.room, item.file
+            ]);
+
+            const csvContent = [headers, ...data]
+                .map(row => row.map(cell => `"${cell}"`).join(','))
+                .join('\n');
+
+            const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = `jadval_${new Date().toISOString().slice(0, 10)}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast("📊 Jadval CSV formatida yuklab olindi!");
+        }
+
+        function getFileContent(subject, type, fileName) {
+            const data = new Date().toLocaleDateString('uz-UZ');
+            return `📁 FAÝL MAZMUNI
+
+Fan: ${subject}
+Dars turi: ${type}
+Fayl nomi: ${fileName}
+Sana: ${data}
+
+${"─".repeat(50)}
+
+📌 Bu material ${type} darsiga tegishli.
+📖 Fan: ${subject}
+👨‍🏫 O'qituvchi ma'lumoti: ...
+
+Haqiqiy fayl tizimida bu yerda PDF, DOCX yoki PPTX mazmuni bo'lar edi.
+Faylning to'liq versiyasini o'qituvchingizdan so'rashingiz mumkin.
+
+${"─".repeat(50)}
+⚡ Bu avtomatik yaratilgan fayl`;
+        }
+
+        let currentBlob = null;
+        let currentDownloadName = "";
+
+        function openFileModal(subject, lessonType, fileName) {
+            const modal = document.getElementById("fileModal");
+            const modalTitle = document.getElementById("modalTitle");
+            const previewDiv = document.getElementById("filePreview");
+            const content = getFileContent(subject, lessonType, fileName);
+            modalTitle.innerHTML = `📄 ${subject} — ${lessonType}`;
+            previewDiv.innerHTML = `<pre style="margin:0; white-space:pre-wrap; font-family: monospace;">${escapeHtml(content)}</pre>`;
+            currentBlob = new Blob([content], { type: "text/plain;charset=utf-8" });
+            currentDownloadName = fileName;
+            modal.classList.add("active");
+        }
+
+        function closeModal() {
+            document.getElementById("fileModal").classList.remove("active");
+        }
+
+        function downloadFile() {
+            if (!currentBlob) { showToast("❌ Fayl mavjud emas.", 2000); return; }
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(currentBlob);
+            link.href = url;
+            link.download = currentDownloadName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast("📥 Fayl yuklab olindi!");
+        }
+
+        // ESLATMA TIZIMI
+        let reminders = [];
+
+        function loadReminders() {
+            const stored = localStorage.getItem("uni_reminders_v2");
+            if (stored) reminders = JSON.parse(stored);
+            else {
+                const examDate = new Date(); examDate.setDate(examDate.getDate() + 5);
+                const assignDate = new Date(); assignDate.setDate(assignDate.getDate() + 2);
+                reminders = [
+                    { id: Date.now() + 1, title: "Sun'iy intellekt imtihoni", type: "Imtihon", date: examDate.toISOString().slice(0, 10) },
+                    { id: Date.now() + 2, title: "Web dasturlash loyihasi", type: "Topshiriq", date: assignDate.toISOString().slice(0, 10) }
+                ];
+                saveReminders();
+            }
+            renderReminders();
+        }
+
+        function saveReminders() {
+            localStorage.setItem("uni_reminders_v2", JSON.stringify(reminders));
+        }
+
+                function addReminder(title, type, date) {
+            if (!title.trim()) {
+                showToast("⚠️ Eslatma matnini kiriting!", 2000);
+                return false;
+            }
+            const newReminder = {
+                id: Date.now(),
+                title: title.trim(),
+                type: type,
+                date: date || new Date().toISOString().slice(0, 10)
+            };
+            reminders.push(newReminder);
+            saveReminders();
+            renderReminders();
+            return true;
+        }
+
+        function renderReminders() {
+            const container = document.getElementById("reminderListContainer");
+            if (!container) return;
+            if (reminders.length === 0) {
+                container.innerHTML = '<div class="empty-reminder">📭 Hozircha eslatma yo‘q</div>';
+                return;
+            }
+            container.innerHTML = "";
+            [...reminders].sort((a, b) => new Date(a.date) - new Date(b.date)).forEach(rem => {
+                const item = document.createElement("div");
+                item.className = "reminder-item";
+                const borderColors = { "Imtihon": "#ef4444", "Topshiriq": "#f59e0b", "Eslatma": "#3b82f6" };
+                item.style.borderLeftColor = borderColors[rem.type] || "#cbd5e1";
+
+                item.innerHTML = `
+                    <div style="flex:1">
+                        <div style="font-weight:600; font-size:0.9rem; color:#1e293b">${rem.title}</div>
+                        <div style="font-size:0.75rem; color:#64748b">${rem.type} • ${rem.date}</div>
+                    </div>
+                    <button class="delete-reminder" onclick="deleteReminder(${rem.id})">🗑️</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function deleteReminder(id) {
+            reminders = reminders.filter(r => r.id !== id);
+            saveReminders();
+            renderReminders();
+            showToast("🗑️ Eslatma o'chirildi.");
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // INIT & EVENT LISTENERS
+        document.addEventListener("DOMContentLoaded", () => {
+            loadScheduleFromLocal();
+            loadReminders();
+
+            document.getElementById("addLessonBtn")?.addEventListener("click", addNewLesson);
+            document.getElementById("addReminderBtn")?.addEventListener("click", () => {
+                const title = document.getElementById("reminderTitle").value;
+                const type = document.getElementById("reminderType").value;
+                const date = document.getElementById("reminderDate").value;
+                if (addReminder(title, type, date)) {
+                    document.getElementById("reminderTitle").value = "";
+                }
+            });
+
+            document.getElementById("exportExcelBtn")?.addEventListener("click", exportToCSV);
+            document.getElementById("closeModalBtn")?.addEventListener("click", closeModal);
+            document.getElementById("downloadFileBtn")?.addEventListener("click", downloadFile);
+
+            // Modalni fondan bosganda yopish
+            document.getElementById("fileModal")?.addEventListener("click", (e) => {
+                if (e.target.id === "fileModal") closeModal();
+            });
+        });
+    </script>
+</body>
+
+</html>
